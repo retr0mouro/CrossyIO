@@ -10,6 +10,7 @@ module Tarefa1_2022li1g044 where
 
 import LI12223
 import Data.List
+import System.Random
 
 {- | =Função mapaValido
 
@@ -30,6 +31,8 @@ import Data.List
 *Contiguamente, não devem existir mais do que __4 rios__ , nem __5 estradas__ ou __relvas__ .
 
 -}
+
+
 mapaValido :: Mapa -> Bool
 mapaValido (Mapa a []) = True
 mapaValido (Mapa _ [(Estrada _, _ ),(Estrada _, _ ),(Estrada _, _ ),(Estrada _, _ ),(Estrada _, _),(Estrada _, _)]) = False
@@ -48,6 +51,8 @@ mapaValido (Mapa l ((t, o):xs))
     | isPrefixOf (tron) (compTroncos o) == True = False                        
     | xs == [] = True                                                           
     | (isRio t && isRio (fst hxs) == True) && riosCont t (fst hxs) == False = False 
+    | elemTronco (Mapa l ((t, o):xs)) == False = False
+    | elemCarro (Mapa l ((t, o):xs)) == False = False
     | mapaValido (Mapa l (xs)) == False = False                                 
     | otherwise = True                                                          
     where hxs = head xs 
@@ -76,13 +81,28 @@ isEstrada (Estrada a) = True
 isEstrada (Rio a) = False
 isEstrada (Relva) = False
 
+-- | elemTronco : verifica se existe, pelo menos, 1 tronco se o terreno for um Rio
+elemTronco :: Mapa -> Bool 
+elemTronco (Mapa n ((t,o):ls)) = case t of 
+    Rio _ -> isTronco o && elemTronco (Mapa n ls)
+    Estrada _ -> elemTronco (Mapa n ls)
+    Relva -> elemTronco (Mapa n ls)
+elemTronco (Mapa n []) = True 
+
 -- | isTronco : verifica se o obstáculo é Tronco
-isTronco :: Obstaculo -> Bool
-isTronco a = if a == Tronco then True else False
+isTronco :: [Obstaculo] -> Bool
+isTronco a = elem Tronco a
+
+elemCarro :: Mapa -> Bool
+elemCarro (Mapa n ((t,o):ls)) = case t of 
+    Rio _ -> elemCarro (Mapa n ls)
+    Relva -> elemCarro (Mapa n ls)
+    Estrada _ -> isCarro o && elemCarro (Mapa n ls)
+elemCarro (Mapa n []) = True
 
 -- | isCarro : verifica se o osbstáculo é um Carro
-isCarro :: Obstaculo -> Bool
-isCarro a = if a == Carro then True else False
+isCarro :: [Obstaculo] -> Bool
+isCarro a = elem Carro a
 
 
 -- | compCarros : se o comprimento da lista for maior do que 4 então aplica-se a função take aos primeiros 4 elementos da lista, ou, se for menor, a função dá a lista de volta
