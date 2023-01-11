@@ -15,7 +15,7 @@ import LI12223
 -- | jogoTerminou : função que indica se o jogador morreu (True) ou está vivo (False)
 
 jogoTerminou :: Jogo -> Bool 
-jogoTerminou (Jogo (Jogador (x,y)) (Mapa l ((t,z):xs))) = if x<0 || x>=l || y>=(length ((t,z):xs)) || morreu (Jogo (Jogador (x,y)) (Mapa l [saberTerreno y (((t,z):xs))])) then True else False
+jogoTerminou (Jogo (Jogador (x,y)) (Mapa l ((t,z):xs))) = x<0 || x>=l || y>=length ((t,z):xs) || morreu (Jogo (Jogador (x,y)) (Mapa l [saberTerreno y ((t,z):xs)])) 
 
 {- | 
 === Condições para o jogador perder
@@ -37,8 +37,8 @@ jogoTerminou (Jogo (Jogador (x,y)) (Mapa l ((t,z):xs))) = if x<0 || x>=l || y>=(
 -- | morreu : vê se o jogador se encontra na mesma posição que um carro ou se está numa posição de um rio sem tronco
 morreu :: Jogo -> Bool 
 morreu (Jogo (Jogador (x,y)) (Mapa n [])) = False
-morreu (Jogo (Jogador (x,y)) (Mapa n ((Rio v,z):xs))) = if elem x (posicaoNenhumRio z) then True else False
-morreu (Jogo (Jogador (x,y)) (Mapa n ((Estrada v,z):xs))) = if elem x (posicaoCarros z) then True else False
+morreu (Jogo (Jogador (x,y)) (Mapa n ((Rio v,z):xs))) = elem x (posicaoNenhumRio z) 
+morreu (Jogo (Jogador (x,y)) (Mapa n ((Estrada v,z):xs))) = elem x (posicaoCarros z) 
 morreu (Jogo (Jogador (x,y)) (Mapa n ((Relva,z):xs))) = False
 
 -- | posicaoCarros : gera um lista de inteiros com as posições dos carros na lista de obstáculos

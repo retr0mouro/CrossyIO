@@ -1,4 +1,4 @@
-{- |
+{-
 Module      : Tarefa3_2022li1g044
 Description : Movimentação do personagem e obstáculos
 Copyright   : David Figueiredo  <a104360@alunos.uminho.pt>
@@ -20,7 +20,7 @@ animaJogo (Jogo (Jogador (x,y)) (Mapa n ((t,z):xs))) w  = juntarJogos (Jogo (Jog
 
 -- | moveJogo : realiza as jogadas
 moveJogo :: Jogo -> Jogada -> Jogo 
-moveJogo (Jogo (Jogador (x,y)) (Mapa n ((t,z):xs))) Parado = parado (Jogo (Jogador (x,y)) (Mapa n ((t,z):xs)))
+moveJogo (Jogo (Jogador (x,y)) (Mapa n ((t,z):xs))) Parado = parado (Jogo (Jogador (x,y)) (Mapa n ((t,z):xs))) 
 moveJogo (Jogo (Jogador (x,y)) (Mapa n ((t,z):xs))) (Move Cima) = moverCima (Jogo (Jogador (x,y)) (Mapa n ((t,z):xs)))
 moveJogo (Jogo (Jogador (x,y)) (Mapa n ((t,z):xs))) (Move Baixo) = moverBaixo (Jogo (Jogador (x,y)) (Mapa n ((t,z):xs)))
 moveJogo (Jogo (Jogador (x,y)) (Mapa n ((t,z):xs))) (Move Direita) = moverDireita (Jogo (Jogador (x,y)) (Mapa n ((t,z):xs)))
@@ -104,17 +104,18 @@ parado (Jogo (Jogador (x,y)) (Mapa n ((t,z):xs))) = if y == 0 then parado2 (Jogo
 
 -- | parado2 : parado quando o y é 0
 parado2 :: Jogo -> Jogo
-parado2 (Jogo (Jogador (x,y)) (Mapa n ((Estrada v,z):xs))) = Jogo (Jogador (x,y)) (Mapa n (moverObs ((Estrada v,z):xs)))
+parado2 (Jogo (Jogador (x,y)) (Mapa n ((Estrada v,z):xs))) = Jogo (Jogador (x,y)) (Mapa n (moverObsE x ((Estrada v,z):xs)))
 parado2 (Jogo (Jogador (x,y)) (Mapa n ((Relva,z):xs))) = Jogo (Jogador (x,y)) (Mapa n  (moverObs ((Relva,z):xs)))
 parado2 (Jogo (Jogador (x,y)) (Mapa n ((Rio v,z):xs))) = if x `elem` posicaoTroncos z then Jogo (posicaoJ n v (Jogador (x,y))) (Mapa n (moverObs ((Rio v,z):xs)))
                                                           else Jogo (Jogador (n+1,y)) (Mapa n (moverObs ((Rio v,z):xs)))
 
 -- | parada3 : parado quando o y é diferente de 0
 parado3 :: Jogo -> Jogo
+parado3 (Jogo (Jogador (x,y)) (Mapa n ((t,lo):(tr,z):[]))) = Jogo (Jogador ((-1),y-1)) (Mapa n  (moverObs ((t,lo):(tr,z):[]))) -- quando fica parado e sai da area do mapa ele vai para posicao negativa
 parado3 (Jogo (Jogador (x,y)) (Mapa n ((t,lo):(Relva,z):xs))) = Jogo (Jogador (x,y)) (Mapa n  (moverObs ((t,lo):(Relva,z):xs)))
 parado3 (Jogo (Jogador (x,y)) (Mapa n ((t,lo):(Rio v,z):xs))) = if x `elem` posicaoTroncos z then Jogo (posicaoJ n v (Jogador (x,y))) (Mapa n (moverObs ((t,lo):(Rio v,z):xs)))
                                                                  else Jogo (Jogador (n+1,y)) (Mapa n (moverObs ((t,lo):(Rio v,z):xs)))
-parado3 (Jogo (Jogador (x,y)) (Mapa n ((t,lo):(Estrada v,z):xs))) = Jogo (Jogador (x,y)) (Mapa n (moverObs ((t,lo):(Estrada v,z):xs)))
+parado3 (Jogo (Jogador (x,y)) (Mapa n ((t,lo):(Estrada v,z):xs))) = Jogo (Jogador (x,y)) (Mapa n (moverObsE x ((t,lo):(Estrada v,z):xs)))
 
 -- | posicaoJ : faz com que o jogador acompanhe o tronco e mete o jogador fora do mapa caso o tronco saia do mapa e troque de lado 
 posicaoJ :: Int -> Int -> Jogador -> Jogador
@@ -144,7 +145,7 @@ moverCima1 (Jogo (Jogador (x,y)) (Mapa n ((ts,lo):(Relva,z):xs))) = Jogo (Jogado
   where coordenadas1 = (x,y-1)
 moverCima1 (Jogo (Jogador (x,y)) (Mapa n ((ts,lo):(Rio v,z):xs))) = Jogo (Jogador coordenadas1) (Mapa n (moverObs ((ts,lo):(Rio v,z):xs)))
   where coordenadas1 = (x,y-1)
-moverCima1 (Jogo (Jogador (x,y)) (Mapa n ((ts,lo):(Estrada v,z):xs))) = Jogo (Jogador coordenadas1) (Mapa n (moverObs ((ts,lo):(Estrada v,z):xs)))
+moverCima1 (Jogo (Jogador (x,y)) (Mapa n ((ts,lo):(Estrada v,z):xs))) = Jogo (Jogador coordenadas1) (Mapa n (moverObsE x ((ts,lo):(Estrada v,z):xs)))
   where coordenadas1 = (x,y-1)
 
 -- | ==Jogador a Mover para Baixo
@@ -160,7 +161,7 @@ moverBaixo (Jogo (Jogador (x,y)) (Mapa n ((t,z):xs))) = if y == 0 then moverBaix
 moverBaixo2 :: Jogo -> Jogo
 moverBaixo2 (Jogo (Jogador (x,y)) (Mapa n ((t,z):(Relva,zs):xs))) = if x `elem` posicaoArvores zs then  parado (Jogo (Jogador (x,y)) (Mapa n ((t,z):(Relva,zs):xs)))
                                                                       else let coordenadas2 = (x,y+1) in Jogo (Jogador coordenadas2) (Mapa n (moverObs ((t,z):(Relva,zs):xs)))
-moverBaixo2 (Jogo (Jogador (x,y)) (Mapa n ((Estrada v,z):xs))) = let coordenadas2 = (x,y+1) in Jogo (Jogador coordenadas2) (Mapa n (moverObs ((Estrada v,z):xs)))
+moverBaixo2 (Jogo (Jogador (x,y)) (Mapa n ((Estrada v,z):xs))) = let coordenadas2 = (x,y+1) in Jogo (Jogador coordenadas2) (Mapa n (moverObsE x ((Estrada v,z):xs)))
 moverBaixo2 (Jogo (Jogador (x,y)) (Mapa n ((Rio v,z):xs))) = let coordenadas2 = (x,y+1) in Jogo (Jogador coordenadas2) (Mapa n (moverObs ((Rio v,z):xs)))
 moverBaixo2 (Jogo (Jogador (x,y)) (Mapa n ((Relva,z):xs))) = let coordenadas2 = (x,y+1) in Jogo (Jogador coordenadas2) (Mapa n (moverObs ((Relva,z):xs)))
 
@@ -168,8 +169,11 @@ moverBaixo2 (Jogo (Jogador (x,y)) (Mapa n ((Relva,z):xs))) = let coordenadas2 = 
 moverBaixo3 :: Jogo -> Jogo
 moverBaixo3 (Jogo (Jogador (x,y)) (Mapa n ((ts,lo):(t,z):(Relva,zs):xs))) = if x `elem` posicaoArvores zs then parado (Jogo (Jogador (x,y)) (Mapa n ((ts,lo):(t,z):(Relva,zs):xs)))
                                                                               else let coordenadas2 = (x,y+1) in Jogo (Jogador coordenadas2 ) (Mapa n (moverObs ((ts,lo):(t,z):(Relva,zs):xs)))
-moverBaixo3 (Jogo (Jogador (x,y)) (Mapa n ((ts,lo):(Rio v,z):xs))) = let coordenadas2 = (x,y+1) in Jogo (Jogador coordenadas2 ) (Mapa n (moverObs ((ts,lo):(Rio v,z):xs)))
-moverBaixo3 (Jogo (Jogador (x,y)) (Mapa n ((ts,lo):(Estrada v,z):xs))) = let coordenadas2 = (x,y+1) in Jogo (Jogador coordenadas2 ) (Mapa n (moverObs ((ts,lo):(Estrada v,z):xs)))
+moverBaixo3 (Jogo (Jogador (x,y)) (Mapa n ((ts,lo):(Rio v,zs):xs))) = let coordenadas2 = (x,y+1) in Jogo (Jogador coordenadas2 ) (Mapa n (moverObs ((ts,lo):(Rio v,zs):xs)))
+moverBaixo3 (Jogo (Jogador (x,y)) (Mapa n ((ts,lo):(Estrada v,zs):xs))) = let coordenadas2 = (x,y+1) in Jogo (Jogador coordenadas2 ) (Mapa n (moverObsE x ((ts,lo):(Estrada v,zs):xs)))
+moverBaixo3 (Jogo (Jogador (x,y)) (Mapa n ((ts,lo):(Relva ,zs):xs))) = let coordenadas2 = (x,y+1) in Jogo (Jogador coordenadas2 ) (Mapa n (moverObs ((ts,lo):(Relva ,zs):xs)))
+
+--acrescentei o (t,z) caso n funcione 
 
 -- | ==Mover para a Direita
 
@@ -189,11 +193,9 @@ moverDireitaax (Jogo (Jogador (x,y)) (Mapa n ((t,z):xs))) = if y == 0 then mover
 moverDireita2 :: Jogo -> Jogo
 moverDireita2 (Jogo (Jogador (x,y)) (Mapa n ((Rio v,z):xs)))  | v<0 && elem x (posicaoTroncos z) && elem (x+v+1) (posicaoTroncos (moverObs2 (Rio v,z))) = Jogo (Jogador (x+v+1,y)) (Mapa n (moverObs ((Rio v,z):xs)))
                                                               | v>0 && elem x (posicaoTroncos z) && elem (x+v+1) (posicaoTroncos (moverObs2 (Rio v,z)))  = Jogo (Jogador (x+v+1,y)) (Mapa n (moverObs ((Rio v,z):xs)))
-                                                              | v==0 && elem x (posicaoTroncos z) = Jogo (Jogador (x-1,y)) (Mapa n (moverObs ((Rio v,z):xs)))
                                                               | otherwise = Jogo (Jogador ((-1),y)) (Mapa n (moverObs ((Rio v,z):xs))) --o boneco esta morto se as condicoes de cima nao acontecerem logo colocamos o boneco fora do mapa para ser mais facil de dizer que ele está morto
-moverDireita2 (Jogo (Jogador (x,y)) (Mapa n ((Estrada v,z):xs)))  | v/=0 && (elem x (posicaoCarros z) == False) && (elem (x+1) ((posicaoCarros (moverObs2 ((Estrada v,z))))) == False) = Jogo (Jogador (x+1,y)) (Mapa n (moverObs ((Estrada v,z):xs)))
-                                                                  | v==0 &&(elem x (posicaoCarros z) == False) && (elem (x+1) (posicaoCarros z) == False) = Jogo (Jogador (x+1,y)) (Mapa n (moverObs ((Estrada v,z):xs)))
-                                                                  | otherwise = Jogo (Jogador ((-1),y)) (Mapa n (moverObs ((Estrada v,z):xs))) --o boneco esta morto se as condicoes de cima nao acontecerem logo colocamos o boneco fora do mapa para ser mais facil de dizer que ele está morto
+moverDireita2 (Jogo (Jogador (x,y)) (Mapa n ((Estrada v,z):xs)))  | v/=0 && (elem x (posicaoCarros z) == False) && (elem (x+1) ((posicaoCarros (moverObsE2 x ((Estrada v,z))))) == False) = Jogo (Jogador (x+1,y)) (Mapa n (moverObsE (x+1) ((Estrada v,z):xs)))
+                                                                  | otherwise = Jogo (Jogador ((-1),y)) (Mapa n (moverObsE (x+1) ((Estrada v,z):xs))) --o boneco esta morto se as condicoes de cima nao acontecerem logo colocamos o boneco fora do mapa para ser mais facil de dizer que ele está morto
 moverDireita2 (Jogo (Jogador (x,y)) (Mapa n ((Relva,z):xs)))  | elem (x+1) (posicaoArvores z) = parado (Jogo (Jogador (x,y)) (Mapa n ((Relva,z):xs)))
                                                               | otherwise = Jogo (Jogador (x+1,y)) (Mapa n (moverObs ((Relva,z):xs)))
 
@@ -201,11 +203,9 @@ moverDireita2 (Jogo (Jogador (x,y)) (Mapa n ((Relva,z):xs)))  | elem (x+1) (posi
 moverDireita3 :: Jogo -> Jogo
 moverDireita3 (Jogo (Jogador (x,y)) (Mapa n ((t,lo):(Rio v,z):xs)))  | v<0 && elem x (posicaoTroncos z) && elem (x+v+1) ((posicaoTroncos (moverObs2 ((Rio v,z))))) = Jogo (Jogador (x+v+1,y)) (Mapa n (moverObs ((t,lo):(Rio v,z):xs)))
                                                                      | v>0 && elem x (posicaoTroncos z) && elem (x+v+1) ((posicaoTroncos (moverObs2 ((Rio v,z))))) = Jogo (Jogador (x+v+1,y)) (Mapa n (moverObs ((t,lo):(Rio v,z):xs)))
-                                                                     | v==0 && elem x (posicaoTroncos z) = Jogo (Jogador (x+1,y)) (Mapa n (moverObs ((t,lo):(Rio v,z):xs)))
                                                                      | otherwise = (Jogo (Jogador (n+1,y)) (Mapa n (moverObs ((t,lo):(Rio v,z):xs)))) --o boneco esta morto se as condicoes de cima nao acontecerem logo colocamos o boneco fora do mapa para ser mais facil de dizer que ele está morto
-moverDireita3 (Jogo (Jogador (x,y)) (Mapa n ((t,lo):(Estrada v,z):xs)))  | v/=0 && (elem x (posicaoCarros z) == False) && (elem (x+1) ((posicaoCarros (moverObs2 ((Estrada v,z))))) == False) = Jogo (Jogador (x+1,y)) (Mapa n (moverObs ((t,lo):(Estrada v,z):xs)))
-                                                                         | v==0 && (elem x (posicaoCarros z) == False) = Jogo (Jogador (x+1,y)) (Mapa n (moverObs ((t,lo):(Estrada v,z):xs)))
-                                                                         | otherwise = Jogo (Jogador ((-1),y)) (Mapa n (moverObs ((t,lo):(Estrada v,z):xs))) --o boneco esta morto se as condicoes de cima nao acontecerem logo colocamos o boneco fora do mapa para ser mais facil de dizer que ele está morto
+moverDireita3 (Jogo (Jogador (x,y)) (Mapa n ((t,lo):(Estrada v,z):xs)))  | v/=0 && (elem x (posicaoCarros z) == False) && (elem (x+1) ((posicaoCarros (moverObsE2 x ((Estrada v,z))))) == False) = Jogo (Jogador (x+1,y)) (Mapa n (moverObsE (x+1) ((t,lo):(Estrada v,z):xs)))
+                                                                         | otherwise = Jogo (Jogador ((-1),y)) (Mapa n (moverObsE (x+1) ((t,lo):(Estrada v,z):xs))) --o boneco esta morto se as condicoes de cima nao acontecerem logo colocamos o boneco fora do mapa para ser mais facil de dizer que ele está morto
 moverDireita3 (Jogo (Jogador (x,y)) (Mapa n ((t,lo):(Relva,z):xs)))  | elem (x+1) (posicaoArvores z) = parado (Jogo (Jogador (x,y)) (Mapa n ((t,lo):(Relva,z):xs)))
                                                                      | otherwise = Jogo (Jogador (x+1,y)) (Mapa n (moverObs ((t,lo):(Relva,z):xs)))
 
@@ -252,11 +252,9 @@ moverEsquerdaax (Jogo (Jogador (x,y)) (Mapa n ((t,z):xs))) = if y == 0 then move
 moverEsquerda2 :: Jogo -> Jogo
 moverEsquerda2 (Jogo (Jogador (x,y)) (Mapa n ((Rio v,z):xs))) | v<0 && elem x (posicaoTroncos z) && elem (x+v-1) (posicaoTroncos (moverObs2 (Rio v,z))) = Jogo (Jogador (x+v-1,y)) (Mapa n (moverObs ((Rio v,z):xs)))
                                                               | v>0 && elem x (posicaoTroncos z) && elem (x+v-1) (posicaoTroncos (moverObs2 (Rio v,z))) = Jogo (Jogador (x+v-1,y)) (Mapa n (moverObs ((Rio v,z):xs)))
-                                                              | v==0 && elem x (posicaoTroncos z) && v == 0 = Jogo (Jogador (x-1,y)) (Mapa n (moverObs ((Rio v,z):xs)))
                                                               | otherwise = Jogo (Jogador ((-1),y)) (Mapa n (moverObs ((Rio v,z):xs))) --o boneco esta morto se as condicoes de cima nao acontecerem logo colocamos o boneco fora do mapa para ser mais facil de dizer que ele está morto
-moverEsquerda2 (Jogo (Jogador (x,y)) (Mapa n ((Estrada v,z):xs))) | v/=0 && (elem x (posicaoCarros z) == False) && (elem (x-1) ((posicaoCarros (moverObs2 ((Estrada v,z))))) == False) = Jogo (Jogador (x-1,y)) (Mapa n (moverObs ((Estrada v,z):xs)))
-                                                                  | v==0 && (elem x (posicaoCarros z) == False) && (elem (x-1) (posicaoCarros z) == False) = Jogo (Jogador (x-1,y)) (Mapa n (moverObs ((Estrada v,z):xs)))
-                                                                  | otherwise = Jogo (Jogador ((-1),y)) (Mapa n (moverObs ((Estrada v,z):xs))) --o boneco esta morto se as condicoes de cima nao acontecerem logo colocamos o boneco fora do mapa para ser mais facil de dizer que ele está morto
+moverEsquerda2 (Jogo (Jogador (x,y)) (Mapa n ((Estrada v,z):xs))) | v/=0 && (elem x (posicaoCarros z) == False) && (elem (x-1) ((posicaoCarros (moverObsE2 x ((Estrada v,z))))) == False) = Jogo (Jogador (x-1,y)) (Mapa n (moverObsE (x-1) ((Estrada v,z):xs)))
+                                                                  | otherwise = Jogo (Jogador ((-1),y)) (Mapa n (moverObsE (x-1) ((Estrada v,z):xs))) --o boneco esta morto se as condicoes de cima nao acontecerem logo colocamos o boneco fora do mapa para ser mais facil de dizer que ele está morto
 moverEsquerda2 (Jogo (Jogador (x,y)) (Mapa n ((Relva,z):xs))) | elem (x-1) (posicaoArvores z) = parado (Jogo (Jogador (x,y)) (Mapa n ((Relva,z):xs)))
                                                               | otherwise = Jogo (Jogador (x-1,y)) (Mapa n (moverObs ((Relva,z):xs)))
 
@@ -264,11 +262,9 @@ moverEsquerda2 (Jogo (Jogador (x,y)) (Mapa n ((Relva,z):xs))) | elem (x-1) (posi
 moverEsquerda3 :: Jogo -> Jogo
 moverEsquerda3 (Jogo (Jogador (x,y)) (Mapa n ((t,lo):(Rio v,z):xs))) | v<0 && elem x (posicaoTroncos z) && elem (x+v-1) ((posicaoTroncos (moverObs2 ((Rio v,z))))) = Jogo (Jogador (x+v-1,y)) (Mapa n (moverObs ((t,lo):(Rio v,z):xs)))
                                                                      | v>0 && elem x (posicaoTroncos z) && elem (x+v-1) ((posicaoTroncos (moverObs2 ((Rio v,z))))) = Jogo (Jogador (x+v-1,y)) (Mapa n (moverObs ((t,lo):(Rio v,z):xs)))
-                                                                     | v==0 && elem x (posicaoTroncos z) = Jogo (Jogador (x-1,y)) (Mapa n (moverObs ((t,lo):(Rio v,z):xs)))
                                                                      | otherwise = Jogo (Jogador ((-1),y)) (Mapa n (moverObs ((t,lo):(Rio v,z):xs))) --o boneco esta morto se as condicoes de cima nao acontecerem logo colocamos o boneco fora do mapa para ser mais facil de dizer que ele está morto
-moverEsquerda3 (Jogo (Jogador (x,y)) (Mapa n ((t,lo):(Estrada v,z):xs))) | v/=0 && (elem x (posicaoCarros z) == False) && (elem (x-1) ((posicaoCarros (moverObs2 ((Estrada v,z))))) == False) = Jogo (Jogador (x-1,y)) (Mapa n (moverObs ((t,lo):(Estrada v,z):xs)))
-                                                                         | v==0 && (elem x (posicaoCarros z) == False) = Jogo (Jogador (x-1,y)) (Mapa n (moverObs ((t,lo):(Estrada v,z):xs)))
-                                                                         | otherwise = Jogo (Jogador ((-1),y)) (Mapa n (moverObs ((t,lo):(Estrada v,z):xs))) --o boneco esta morto se as condicoes de cima nao acontecerem logo colocamos o boneco fora do mapa para ser mais facil de dizer que ele está morto
+moverEsquerda3 (Jogo (Jogador (x,y)) (Mapa n ((t,lo):(Estrada v,z):xs))) | v/=0 && (elem x (posicaoCarros z) == False) && (elem (x-1) ((posicaoCarros (moverObsE2 x ((Estrada v,z))))) == False) = Jogo (Jogador (x-1,y)) (Mapa n (moverObsE (x-1) ((t,lo):(Estrada v,z):xs)))
+                                                                         | otherwise = Jogo (Jogador ((-1),y)) (Mapa n (moverObsE (x-1) ((t,lo):(Estrada v,z):xs))) --o boneco esta morto se as condicoes de cima nao acontecerem logo colocamos o boneco fora do mapa para ser mais facil de dizer que ele está morto
 moverEsquerda3 (Jogo (Jogador (x,y)) (Mapa n ((t,lo):(Relva,z):xs))) | elem (x-1) (posicaoArvores z) = parado (Jogo (Jogador (x,y)) (Mapa n ((t,lo):(Relva,z):xs)))
                                                                      | otherwise = Jogo (Jogador (x-1,y)) (Mapa n (moverObs ((t,lo):(Relva,z):xs)))
 
@@ -284,3 +280,34 @@ elemIndicess x (y:ys) | x == y = 0 : map (+1) (elemIndicess x ys)
 posicaoArvores :: [Obstaculo] -> [Int] 
 posicaoArvores (x:xs) = elemIndicess Arvore (x:xs)
 posicaoArvores [] = []
+
+-- | move os obstaculos para a esquerda verificando se o jogador é atropelado
+moverobsesq :: Int -> [Obstaculo] -> Int -> [Obstaculo]
+moverobsesq v o x = if v == 0 || elem x (posicaoCarros o) then o
+                    else moverobsesq (v-1) (drop 1 o ++ take 1 o) x
+
+-- | move os obstaculos para a direita verificando se o jogador é atropelado
+moverobsdir :: Int -> [Obstaculo] -> Int -> [Obstaculo]
+moverobsdir v o x = if v == 0 || elem x (posicaoCarros o) then o 
+                    else moverobsdir (v-1) (trocarOrdem (take 1 (trocarOrdem o)) ++ trocarOrdem (drop 1 (trocarOrdem o))) x
+
+-- | função que mexe os obstaculos da estrada para ver se o jogador é atropelado
+moverObsE :: Int -> [(Terreno,[Obstaculo])] -> [(Terreno,[Obstaculo])]   
+moverObsE x [] = []
+moverObsE x ((Rio v, y:ys):b) = if v > 0 then ((Rio v, (desldir v (y:ys)))):moverObsE x b 
+                                 else if v < 0 then ((Rio v, (deslesq2 v (y:ys)))):moverObsE x b 
+                                 else ((Rio v, y:ys)):moverObsE x b 
+moverObsE x ((Estrada v, y:ys):b) = if v > 0 then ((Estrada v, (moverobsdir v (y:ys) x))):moverObsE x b 
+                                 else if v < 0 then ((Estrada v, (moverobsesq (abs v) (y:ys) x))):moverObsE x b 
+                                 else ((Estrada v, y:ys)):moverObsE x b 
+moverObsE x ((Relva, z):b) = (Relva, z):moverObsE x b 
+
+-- | função que mexe os obstaculos da estrada mas só dá como resultado a lista de obstaculos, para poder verificar se vai haver um carro na posição para onde o jogador vai
+moverObsE2 :: Int -> (Terreno,[Obstaculo]) -> [Obstaculo]
+moverObsE2 x (Rio v, y:ys) = if v > 0 then (desldir v (y:ys))
+                                 else if v < 0 then (deslesq2 v (y:ys))
+                                 else y:ys
+moverObsE2 x (Estrada v, y:ys) = if v > 0 then moverobsdir v (y:ys) x
+                                 else if v < 0 then moverobsesq (abs v) (y:ys) x 
+                                 else y:ys
+moverObsE2 x (Relva, z) = z 

@@ -43,17 +43,15 @@ mapaValido (Mapa n ((Relva ,o):(Relva ,os):ms))
 mapaValido (Mapa _ [(Rio _, _ ),(Rio _, _ ),(Rio _, _ ),(Rio _, _ ),(Rio _, _)]) = False
 mapaValido (Mapa l ((t, o):xs)) 
     | length o > l || length o < l = False 
-    | isRelva t == True && (elem Carro o || elem Tronco o) == True = False      
-    | isRio t == True && (elem Arvore o || elem Carro o) == True = False        
-    | isEstrada t == True && (elem Tronco o || elem Arvore o) == True = False   
-    | (elem Nenhum o == False) = False                                           
-    | isPrefixOf (car) (compCarros o) == True = False                          
-    | isPrefixOf (tron) (compTroncos o) == True = False                        
-    | xs == [] = True                                                           
-    | (isRio t && isRio (fst hxs) == True) && riosCont t (fst hxs) == False = False 
-    | elemTronco (Mapa l ((t, o):xs)) == False = False
-    | elemCarro (Mapa l ((t, o):xs)) == False = False
-    | mapaValido (Mapa l (xs)) == False = False                                 
+    | isRelva t && (elem Carro o || elem Tronco o) = False      
+    | isRio t && (elem Arvore o || elem Carro o) = False        
+    | isEstrada t && (elem Tronco o || elem Arvore o) = False   
+    | notElem Nenhum o = False                                           
+    | isPrefixOf (car) (compCarros o) = False                          
+    | isPrefixOf (tron) (compTroncos o) = False                        
+    | null xs = True                                                           
+    | isRio t && isRio (fst hxs) && not (riosCont t (fst hxs)) = False 
+    | not $ mapaValido (Mapa l xs) = False                                 
     | otherwise = True                                                          
     where hxs = head xs 
           car = [Carro,Carro,Carro,Carro]
@@ -63,66 +61,51 @@ mapaValido (Mapa l ((t, o):xs))
 
 -- | riosCont : verifica se as velocidades de rios sao uma positiva e uma negativa
 riosCont :: Terreno -> Terreno -> Bool
-riosCont (Rio a) (Rio b) = if ((a<0 && b<0) || (a>0 && b>0)) then False else True
+riosCont (Rio a) (Rio b) = not ((a<0 && b<0) || (a>0 && b>0))
 
 -- | isRelva : verifica se o terreno é relva
 isRelva :: Terreno -> Bool
-isRelva a = if a == Relva then True else False
+isRelva a = a == Relva
 
 -- | isRio : verifica se o terreno é Rio
 isRio :: Terreno -> Bool
 isRio (Rio v) = True 
 isRio (Estrada a) = False
-isRio (Relva) = False
+isRio Relva = False
 
 -- | isEstrada : verifica se o terreno é Estrada
 isEstrada :: Terreno -> Bool
 isEstrada (Estrada a) = True
 isEstrada (Rio a) = False
-isEstrada (Relva) = False
-
--- | elemTronco : verifica se existe, pelo menos, 1 tronco se o terreno for um Rio
-elemTronco :: Mapa -> Bool 
-elemTronco (Mapa n ((t,o):ls)) = case t of 
-    Rio _ -> isTronco o && elemTronco (Mapa n ls)
-    Estrada _ -> elemTronco (Mapa n ls)
-    Relva -> elemTronco (Mapa n ls)
-elemTronco (Mapa n []) = True 
+isEstrada Relva = False
 
 -- | isTronco : verifica se o obstáculo é Tronco
-isTronco :: [Obstaculo] -> Bool
-isTronco a = elem Tronco a
-
-elemCarro :: Mapa -> Bool
-elemCarro (Mapa n ((t,o):ls)) = case t of 
-    Rio _ -> elemCarro (Mapa n ls)
-    Relva -> elemCarro (Mapa n ls)
-    Estrada _ -> isCarro o && elemCarro (Mapa n ls)
-elemCarro (Mapa n []) = True
+isTronco :: Obstaculo -> Bool
+isTronco a = a == Tronco
 
 -- | isCarro : verifica se o osbstáculo é um Carro
-isCarro :: [Obstaculo] -> Bool
-isCarro a = elem Carro a
+isCarro :: Obstaculo -> Bool
+isCarro a = a == Carro
 
 
 -- | compCarros : se o comprimento da lista for maior do que 4 então aplica-se a função take aos primeiros 4 elementos da lista, ou, se for menor, a função dá a lista de volta
 compCarros :: [Obstaculo] -> [Obstaculo]
 compCarros [] = []
 compCarros x
-    | ((isPrefixOf [Carro,Carro,Carro,Carro] (take 4 x)) == True) = [Arvore]     --isPrefixOf [Tronco,Tronco,Tronco,Tronco] (drop 1 x)
+    | isPrefixOf [Carro,Carro,Carro,Carro] (take 4 x) = [Arvore]     --isPrefixOf [Tronco,Tronco,Tronco,Tronco] (drop 1 x)
     | otherwise = compCarros (drop 1 x) 
 
 -- | compTroncos : se o comprimento da lista for maior do que 6 então aplica-se a função take aos primeiros 6 elementos da lista, ou, se for menor, a função dá a lista de volta
 compTroncos :: [Obstaculo] -> [Obstaculo]
 compTroncos [] = []
 compTroncos x
-    | ((isPrefixOf [Tronco,Tronco,Tronco,Tronco,Tronco,Tronco] (take 6 x)) == True) = [Arvore]     --isPrefixOf [Tronco,Tronco,Tronco,Tronco] (drop 1 x)
+    | isPrefixOf [Tronco,Tronco,Tronco,Tronco,Tronco,Tronco] (take 6 x) = [Arvore]     --isPrefixOf [Tronco,Tronco,Tronco,Tronco] (drop 1 x)
     | otherwise = compTroncos (drop 1 x)
 
 -- | mapaNenhum : verifica se existe um caminho possivel se houver duas relvas seguidas
 mapaNenhum :: Mapa -> [Bool]
 mapaNenhum (Mapa l ((Relva, o):(Relva,os):t)) 
-    | elemW (elemIndices Nenhum o) (elemIndices Nenhum os) || elemW (elemIndices Nenhum os) (elemIndices Nenhum o) == True = [True]
+    | elemW (elemIndices Nenhum o) (elemIndices Nenhum os) || elemW (elemIndices Nenhum os) (elemIndices Nenhum o) = [True]
     | otherwise = [False]
 
 -- | elemW : redefinição da função elem 

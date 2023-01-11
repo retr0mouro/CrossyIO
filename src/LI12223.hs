@@ -15,8 +15,15 @@ module LI12223 (
   -- ** Mapas
   Mapa(..), Terreno(..), Obstaculo(..),
     -- ** Jogo
-  Jogo(..), Jogador(..), Direcao(..), Jogada(..)
+  Jogo(..), Jogador(..), Direcao(..), Jogada(..),
+  -- ** Parte gráfica
+  Skin(..), Opcao(..), EstadoJogo(..), World(..), Images(..), Time
   ) where
+
+import Graphics.Gloss
+import Graphics.Gloss.Data.Bitmap
+import Graphics.Gloss.Interface.Pure.Game
+import Graphics.Gloss.Interface.IO.Game
 
 -- | Velocidade que irá afetar a movimentação dos 'Obstaculo's de um 'Mapa'.
 type Velocidade = Int
@@ -75,3 +82,28 @@ data Jogada
   = Parado -- ^ tipo que define a ausência de uma acção do 'Jogador'
   | Move Direcao -- ^ um movimento do jogador numa determinada 'Direcao'
   deriving (Show, Read, Eq)
+
+-- | Escolha da personagem
+data Skin = Default -- ^ Galinha
+          | Homem -- ^ Homem
+          deriving (Show,Read,Eq)
+-- | Escolha para iniciar o jogo ou para sair
+data Opcao = Jogar -- ^ Iniciar o jogo
+           | Sair  -- ^ Sair do jogo
+           deriving (Show,Read,Eq)
+-- | Ecrãs para todos os modos de jogo
+data EstadoJogo = Opcoes Opcao     -- ^ Ecrã inicial
+                | Escolhe Skin     -- ^ Ecrã de escolha de personagem
+                | ModoJogo Skin    -- ^ Ecrã jogo, com a skin escolhida
+                | Save Opcao Skin
+                | ModoVenceu Opcao -- ^ Ecrã de final de Jogo
+                deriving (Show,Read,Eq)
+-- | Agrupamento de informações para obtenção de imagens do jogo 
+type World = (EstadoJogo,Jogo,Jogada,[Int],Images,Images,Time)
+
+
+-- | Definição do tipo das imagens externas 
+type Images = [Picture]
+
+-- | Definição de uma outra variável de tempo para dar movimento à personagem Homem
+type Time = Float 
